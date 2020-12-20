@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# Recursively deletes bucket and it's objects
+#
+
+help_function () {
+  cat <<EOF
+  Usage: aws-rm-bucket [environment|help] [bucket|all]
+
+  Options:
+    environment   Unified environment name
+    help          Display this message
+    bucket        Bucket name
+    all           Remove all buckets in environment
+EOF
+  exit 0
+}
+
+if ! command -v aws &> /dev/null
+then
+    echo "\"aws-cli\" command not found!"
+    exit
+fi
+
+# first argument must be Unified environment name
+environment="$1"
+if [ -z "$environment" ]
+then
+  echo "You must define an \"environment\""
+  exit 1
+elif [ "$environment" = "help" ]
+then
+  help_function
+fi
+
+# second argument must be bucket name
+bucket="$2"
+if [ -z "$bucket" ]
+then
+  echo "You must define a \"bucket\""
+  exit 1
+elif [ "$bucket" = "all" ]
+then
+  echo ""
+fi
+
+echo "Removing $bucket objects"
+aws --profile idgateway-qa s3 rm --recursive s3://idgateway-unified-$environment-$bucket/
+
+echo "Removing $bucket"
+aws --profile idgateway-qa s3api delete-bucket --bucket idgateway-unified-$environment-$bucket
+
+echo "Done"

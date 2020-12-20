@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# Wrapper for AWS CLI to display select EC2 instance info
+#
+
+help_function () {
+  cat <<EOF
+  Usage: aws-instances [-hpri] [--help] [--profile] [--region] [--ip]
+
+  Optional Arguments:
+    -h, --help      show this help
+    -p, --profile   AWS profile
+    -r, --region    AWS Region (default eu-west-2)
+    -i, --ip        Instance IP address to display (default Private)
+EOF
+  exit 0
+}
+
+if ! command -v aws &> /dev/null
+then
+    echo "\"aws-cli\" command not found!"
+    exit
+fi
+
+if ! command -v jq &> /dev/null
+then
+    echo "\"jq\" command not found!"
+    exit
+fi
+
+PROFILE=""
+REGION="eu-west-2"
+IP="Private"
+
+while [[ $# > 0 ]]
+do
+    case $1 in
+        -h|--help)
+            help_function
+            ;;
+        -p|--profile)
+            PROFILE="$2"
+            shift
+            ;;
+        -r|--region)
+            REGION="$2"
+            shift
+            ;;
+        -i|--ip)
+            IP="$2"
+            shift
+            ;;
+    esac
+    shift
+done
+
+echo "Profile: $PROFILE Region: $REGION"
+
+aws --profile=$PROFILE --region=$REGION ec2 describe-instances | jq --arg IP $IP '.Reservations[].Instances | .[] | .InstanceId + " " + .State.Name + " " + (.Tags[] | select(.Key == "Name") | .Value) + " " + .PrivateIpAddress + " " + (.PublicIpAddress // "none")'
