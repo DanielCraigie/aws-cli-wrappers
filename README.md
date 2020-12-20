@@ -5,3 +5,6 @@ CLI commands required to achieve specific tasks.
 - `aws-instances` lists EC2 instance IPs.  Useful when accessing instances in Private Subnet via Bastion.
 - `aws-rm-bucket` S3 "rm -r"
 - `aws-autoscaling-size` list/edit EC2 AutoScaling Group requirements (min/desired/max)
+
+### Instillation
+Clone this repository into your `/home/{user}/.bin` and restart your terminal session.
